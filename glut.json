@@ -1,0 +1,9 @@
+{
+    "glut": {
+        "img_paths": [
+            "/tmp/gradio/149341580d53884b8462dcc9a2ee7163a640fc1c4a916728df0bc6750231cb29/a5e1a8bff5300510bfe6e2e7615dfd8b1497264796.png"
+        ],
+        "audio_path": "/tmp/gradio/91a598ff4b691a032689022985a0950b5c55e7cd9bc8bd1f704674ba0d393e82/ciwo.mp3",
+        "prompt": "女人在唱歌"
+    }
+}

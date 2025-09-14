@@ -1,0 +1,76 @@
+__object__:
+  name: Generator
+  path: humo.generate
+audio:
+  vocal_separator: ./weights/audio_separator/Kim_Vocal_2.onnx
+  wav2vec_model: ./weights/whisper-large-v3
+diffusion:
+  sampler:
+    prediction_type: v_lerp
+    type: euler
+  schedule:
+    T: 1000.0
+    type: lerp
+  timesteps:
+    sampling:
+      shift: 5.0
+      steps: 8
+      type: uniform_trailing
+    training:
+      loc: 0.0
+      scale: 1.0
+      type: logitnormal
+dit:
+  checkpoint_dir: ./weights/HuMo/HuMo-17B
+  compile: false
+  fsdp:
+    enabled: false
+    sharding_strategy: HYBRID_SHARD
+  gradient_checkpoint: true
+  init_with_meta_device: true
+  model:
+    __inherit__: humo/configs/models/Wan_14B_I2V.yaml
+    __object__:
+      name: WanModel
+      path: humo.models.wan_modules.model_humo
+    insert_audio: true
+  sp_size: 1
+  zero_vae_720p_path: ./weights/HuMo/zero_vae_720p_161frame.pt
+  zero_vae_path: ./weights/HuMo/zero_vae_129frame.pt
+generation:
+  batch_size: 1
+  extract_audio_feat: true
+  fps: 25
+  frames: 101
+  fsdp: false
+  height: 480
+  mode: TIA
+  output:
+    dir: ./outputs
+  positive_prompt: glut.json
+  sample_neg_prompt: 色调艳丽，过曝，静态，细节模糊不清，字幕，风格，作品，画作，画面，静止，整体发灰，最差质量，低质量，JPEG压缩残留，丑陋的，残缺的，多余的手指，画得不好的手部，画得不好的脸部，畸形的，毁容的，形态畸形的肢体，手指融合，静止不动的画面，杂乱的背景，三条腿，背景人很多，倒着走
+  scale_a: 5.5
+  scale_t: 5.0
+  seed: 293773435
+  sequence_parallel: 8
+  step_change: 980
+  width: 832
+text:
+  dropout: 0.1
+  dtype: bfloat16
+  fsdp:
+    enabled: false
+    sharding_strategy: HYBRID_SHARD
+  t5_checkpoint: ./weights/Wan2.1-T2V-1.3B/models_t5_umt5-xxl-enc-bf16.pth
+  t5_tokenizer: ./weights/Wan2.1-T2V-1.3B/google/umt5-xxl
+vae:
+  checkpoint: ./weights/Wan2.1-T2V-1.3B/Wan2.1_VAE.pth
+  compile: false
+  dtype: bfloat16
+  grouping: true
+  scaling_factor: 0.9152
+  use_sample: false
+  vae_stride:
+  - 4
+  - 8
+  - 8
