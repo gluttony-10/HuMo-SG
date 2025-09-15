@@ -20,3 +20,4 @@ mediapy
 omegaconf
 gradio
 modelscope
+optimum-quanto
