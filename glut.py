@@ -52,62 +52,68 @@ def generate(
     num_frames,
     seed
 ):
-    if seed < 0:
-        seed = random.randint(0, np.iinfo(np.int32).max)
-    else:
-        seed = seed
+    try:
+        if seed < 0:
+            seed = random.randint(0, np.iinfo(np.int32).max)
+        else:
+            seed = seed
 
-    if resolution == "1280*720":
-        width = 1280
-        height = 720
-    else:
-        width = 832
-        height = 480
+        if resolution == "1280*720":
+            width = 1280
+            height = 720
+        else:
+            width = 832
+            height = 480
 
-    data = {
-        "glut": {
-            "img_paths": [image] if image else "",  # 处理空图片情况
-            "audio_path": audio,
-            "prompt": prompt
+        data = {
+            "glut": {
+                "img_paths": [image] if image else "",  # 处理空图片情况
+                "audio_path": audio,
+                "prompt": prompt
+            }
         }
-    }
 
-    # 写入JSON文件（保留原有格式）
-    json_path = "glut.json"
-    if os.path.exists(json_path):
-        with open(json_path, 'r', encoding='utf-8') as f:
-            existing_data = json.load(f)
-        existing_data.update(data)
-        data = existing_data
+        # 写入JSON文件（保留原有格式）
+        json_path = "glut.json"
+        if os.path.exists(json_path):
+            with open(json_path, 'r', encoding='utf-8') as f:
+                existing_data = json.load(f)
+            existing_data.update(data)
+            data = existing_data
+        
+        with open(json_path, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=4, ensure_ascii=False)
+
+        mode="TIA" if image else "TA"
+
+        # 读取当前配置文件路径
+        config_path = "glut.yaml"
+        with open(config_path, 'r', encoding='utf-8') as f:
+            config = yaml.safe_load(f)
+
+        # 更新字段
+        config['generation']['mode'] = mode
+        config['generation']['width'] = width
+        config['generation']['height'] = height
+        config['generation']['frames'] = num_frames
+        config['generation']['sample_neg_prompt'] = negative_prompt
+        config['generation']['seed'] = seed
+
+        # 写回文件
+        with open(config_path, 'w', encoding='utf-8') as f:
+            yaml.safe_dump(config, f, allow_unicode=True, default_flow_style=False)
+
+        # Load config
+        config = load_config(config_path)
+        runner = create_object(config)
+        runner.entrypoint()
+
+        return f"outputs/glut_seed{seed}.mp4", f"种子数{seed}，保存在outputs/glut_seed{seed}.mp4"
     
-    with open(json_path, 'w', encoding='utf-8') as f:
-        json.dump(data, f, indent=4, ensure_ascii=False)
-
-    mode="TIA" if image else "TA"
-
-    # 读取当前配置文件路径
-    config_path = "glut.yaml"
-    with open(config_path, 'r', encoding='utf-8') as f:
-        config = yaml.safe_load(f)
-
-    # 更新字段
-    config['generation']['mode'] = mode
-    config['generation']['width'] = width
-    config['generation']['height'] = height
-    config['generation']['frames'] = num_frames
-    config['generation']['sample_neg_prompt'] = negative_prompt
-    config['generation']['seed'] = seed
-
-    # 写回文件
-    with open(config_path, 'w', encoding='utf-8') as f:
-        yaml.safe_dump(config, f, allow_unicode=True, default_flow_style=False)
-
-    # Load config
-    config = load_config(config_path)
-    runner = create_object(config)
-    runner.entrypoint()
-
-    return f"outputs/glut_seed{seed}.mp4", f"种子数{seed}，保存在outputs/glut_seed{seed}.mp4"
+    except Exception as e:
+        error_msg = f"发生错误：{str(e)}"
+        print(f'\033[31m{error_msg}\033[0m')  # 控制台红色显示
+        return None, error_msg  # 返回空视频路径和错误信息
 
 with gr.Blocks(theme=gr.themes.Base()) as demo:
     gr.Markdown("""
